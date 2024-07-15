@@ -5,21 +5,47 @@ export default class Car extends Konva.Group{
     rays = [];
     indicators = []
 
-    constructor( x, y, rotation, w=25, h=65, rays=8, fov=Math.PI/2 ){
+    constructor( x, y, rotation, w=16, h=36, rays=8, fov=Math.PI/2 ){
         super({x, y, draggable:true, rotation })
         this.brain = new NN( 8, 16, 3 );
         this.crashed = false ;
         this.rayLength = 140
         this.score = 0 ;
+        this.fitness = 0;
         this.direction = rotation;//degrees
+        this.debugging = false;
 
         this.constructRays( rays, fov );
         this.constructBody( w, h )
+
+        this.on('click', () => this.debug( !this.debugging ))
     }
 
-    constructBody( w, h ){
-        this.shape = new Konva.Rect({ x:0, y:0, w, h, fill:"green" });
+    constructBody( height, width ){
+        const halfWidth  = width  /2;
+        const halfHeight = height /2
+        this.shape = new Konva.Rect({ x:-halfWidth, y:-halfHeight, width, height, 
+            shadowColor: 'black',
+            shadowBlur: 0,
+            shadowOffset: { x: 3, y: 3 },
+            shadowOpacity: 0.5 
+        });
         this.add( this.shape );
+
+        const carImage = new Image();
+        carImage.onload = () => {
+            this.shape.fillPatternImage( carImage );
+            this.shape.fillPatternRotation( 90 );
+            this.shape.fillPatternScale( new Vec2( .3, .36) )
+        } 
+        carImage.src = "images/yello_car.png"
+
+
+        this.boundingBox = new Konva.Line({
+            points : [ -halfWidth, -halfHeight, halfWidth, -halfHeight, halfWidth, halfHeight, -halfWidth, halfHeight, -halfWidth, -halfHeight],
+            stroke : "red",
+            strokeWidth : 2,
+        })
     }
 
     constructRays( noOfRays, fov ){
@@ -33,15 +59,26 @@ export default class Car extends Konva.Group{
                 stroke : "black"
             });
             this.rays.push(ray);
-            this.add( ray );
+            // this.add( ray );
 
             const indicator = new Konva.Circle({
                 x : 0, y : 0,
                 radius : 5, fill : "red",
             })
             ray.indicator = indicator
-            this.add(indicator)
         }
+    }
+
+    debug( debug ){
+        this.debugging = debug ;
+        if( debug ){
+            this.add( this.boundingBox );
+            this.rays.forEach( ray => { this.add(ray); this.add( ray.indicator ) });
+        }else{
+            this.boundingBox.remove();
+            this.rays.forEach( ray => { ray.remove();  ray.indicator.remove()  });
+        }
+        
     }
 
     castRays( leftAndRightPoints ){
@@ -73,6 +110,17 @@ export default class Car extends Konva.Group{
                         ray.indicator.absolutePosition( intersect );
                     }
                 }
+                if( this.crashed ) continue ;
+                const bb = this.boundingBox.points();
+                for( let i = 0; i < bb.length; i+=2 ){
+                    const b1 = Vec2.add(new Vec2( bb[i  ], bb[i+1] ).rotated(this.direction), p1 );
+                    const b2 = Vec2.add(new Vec2( bb[i+2], bb[i+3] ).rotated(this.direction), p1 );
+                    // console.log( b1, b2 )
+                    if( lineLineIntersection( b1, b2, q1, q2 )){
+                        this.crashed = true;
+                        break ;
+                    }
+                }
             };
             X.push( minDist / this.rayLength );
         })
@@ -84,23 +132,29 @@ export default class Car extends Konva.Group{
         const X = this.castRays( points );
 
         const [result, decision] = this.brain.predict(X)
-
-        // switch( decision ){
-        //     case 0: break;
-        //     case 1:
-        //         this.direction += Math.PI/9;
-        //         break;
-        //     case 2:
-        //         this.direction += Math.PI/9;
-        //         break;
-        // }
-        // this.rotation( this.direction );
-        // const angle = this.direction / 180 * Math.PI;
-        // this.move({ x :speed * Math.cos(angle), y :speed * Math.sin(angle)});
+        
+        switch( decision ){
+            case 0: break;
+            case 1:
+                this.direction += 4;
+                break;
+            case 2:
+                this.direction += 4;
+                break;
+        }
+        this.rotation( this.direction );
+        const angle = this.direction / 180 * Math.PI;
+        this.score ++
+        this.move({ x :speed * Math.cos(angle), y :speed * Math.sin(angle)});
     }
 
-    static sex( carA, carB ){
-        const child = new Car( carA.x(), carb.y() ); 
+    mutate( t ){
+        this.brain.mutate( t )
+    }
+
+    static crossover( carA, carB ){
+        if( !carA || !carB ) return console.log("orphan");
+        const child = new Car( carA.x(), carB.y(), carA.direction ); 
         child.brain = NN.crossover( carA.brain, carB.brain )
         return child ;
     }
@@ -128,4 +182,4 @@ function lineLineIntersection(p1, p2, q1, q2) {
     }
   
     return null; 
-  }
+}

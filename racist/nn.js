@@ -91,21 +91,27 @@ export default class NN {
 
         return [result, argmax ];
     }
+
+    mutate( t ){
+        this.W = this.W.map( w => math.map( w, val => Math.random() < t ? val += (Math.random()-.5)*.2 : val ))
+        this.B = this.B.map( b => math.map( b, val => Math.random() < t ? val += (Math.random()-.5)*.2 : val ))
+    }
+
     static crossover(nn1, nn2) {
         const child = new NN(nn1.ip, nn1.hidden, nn1.op, nn1.learning_rate);
 
         for (let i = 0; i < child.W.length; i++) {
-            const W1 = nn1.W[i].toArray();
-            const W2 = nn2.W[i].toArray();
-            const W_child = W1.map((w, idx) => (Math.random() < 0.5 ? w : W2[idx]));
-            child.W[i] = math.reshape(W_child, nn1.W[i].size());
+            const W1 = nn1.W[i];
+            const W2 = nn2.W[i];
+            const W_child = math.map( W1, (val, i) => (Math.random() < .5? W1[i[0]][i[1]] : W2[i[0]][i[1]] ) );
+            child.W[i] = W_child;
         }
 
         for (let i = 0; i < child.B.length; i++) {
-            const B1 = nn1.B[i].toArray();
-            const B2 = nn2.B[i].toArray();
-            const B_child = B1.map((b, idx) => (Math.random() < 0.5 ? b : B2[idx]));
-            child.B[i] = math.reshape(B_child, nn1.B[i].size());
+            const B1 = nn1.B[i];
+            const B2 = nn2.B[i];
+            const B_child = math.map( B1, (val, i) => (Math.random() < .5? B1[i[0]][i[1]] : B2[i[0]][i[1]] ) );
+            child.B[i] = B_child
         }
 
         return child;
@@ -124,3 +130,4 @@ function ReLU(x) {
 function derivReLU(x) {
     return math.map(x, val => (val > 0 ? 1 : 0));
 }
+

@@ -16,6 +16,10 @@ export default class Track extends Konva.Group{
         this.trackLine = new Konva.Line({ 
             strokeWidth: trackWidth*1.7, 
             stroke:"#445060",
+            shadowColor: 'black',
+            shadowBlur: 0,
+            shadowOffset: { x: 4, y: 4 },
+            shadowOpacity: 0.5 
         })
 
         this.add( this.trackLine);

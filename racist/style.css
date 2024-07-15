@@ -32,7 +32,11 @@ canvas{
     align-items: center;
 }
 
-.button{
+.option{
+    font-weight: 900;
+}
+
+.input{
     align-items: center;
     background: linear-gradient(-225deg,#a8adb4,#f8f8f8);
     border-radius: 3px;
@@ -50,24 +54,27 @@ canvas{
         color: #858d9c;  
     }
 
-    &.run{
-        .play-icon{
-            display: none;
-        }
-        .edit-icon{
+    &.checked{
+        .checked-icon{
             display: block;
         }
-    }
-
-    &.edit{
-        .play-icon{
-            display: block;
-        }
-        .edit-icon{
+        .unchecked-icon{
             display: none;
         }
     }
 
+    &.unchecked{
+        .unchecked-icon{
+            display: block;
+        }
+        .checked-icon{
+            display: none;
+        }
+    }
+
+    
+}
+.button{
     &:hover{
         transform: translateY(-3px);
         box-shadow: inset 0 -5px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 4px 2px 1px rgba(30,35,90,0.4);
@@ -77,8 +84,4 @@ canvas{
         box-shadow: inset 0 -5px 0 0 #cdcde6, inset 0 0 1px 1px #fff, 0 0 2px 1px rgba(30,35,90,0.4);
         transform: translateY(3px);
     }
-}
-
-input{
-    display: none;
 }

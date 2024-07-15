@@ -7,18 +7,28 @@ var layer ;
 var track;
 var debugText;
 var carpool;
-var mode = 'edit' 
+var mode = 'edit' ;
+var debug = false ;
+let speed = 1 ;
+
+document.getElementById("speed").oninput = function(){ speed = this.value }
+
+document.getElementById("debug").addEventListener( 'click', function(){
+    debug = ! debug ;
+    this.textContent = debug ? "Hide gizmos" : "Show gizmos";
+    // carpool && carpool.debug( debug );
+})
 
 document.getElementById("mode").addEventListener('click', function() {
-    this.classList.remove(mode);
+    this.classList.remove('checked','unchecked');
     mode = mode == 'edit' ? 'run' : 'edit' ;
-    this.classList.add(mode);
+    this.classList.add( mode == 'run'? 'checked': 'unchecked' );
     document.getElementById("text-content").textContent = mode =='edit'? 'Run' : 'Edit'
 
     track.setMode( mode );
     if( mode == "run" ){
         if( track.ready() ){
-            carpool = new CarPool( 1, track, ...track.getStartingState());
+            carpool = new CarPool( 100, track, ...track.getStartingState());
             layer.add(carpool)
             layer.draw()
             draw()
@@ -26,8 +36,6 @@ document.getElementById("mode").addEventListener('click', function() {
     }else{
         carpool.destroy() ;
     }
-
-    
 })
 
 
@@ -47,10 +55,10 @@ function setup(){
         stage.height( window.innerHeight ); 
     })
 
-    track = new Track( 50 );
+    track = new Track( 35 );
 
     for( let angle = 0; angle < Math.PI*2; angle+= Math.PI/10 ){
-        const radius = 150 + Math.random() * 120;
+        const radius = 250 + Math.random() * 90;
         const x = radius * Math.cos(angle);
         const y = radius * Math.sin(angle);
         track.addNode( new Node( stage.width()/2 + x,   stage.height()/2 + y ));
@@ -71,20 +79,19 @@ function setup(){
 var time = 0 ;
 function draw( curr ){
     if( mode == "run") requestAnimationFrame( draw );
-    if( !carpool ) return ;
+    if( !carpool || !carpool.running ) return ;
     // const timeElapsed = curr - time
     // if( timeElapsed<fpsInterval) return;
     time = curr ;
-
-    carpool.thinkAndMove( 5 );
-    
-    if( !carpool.running ){
-        carpool.calculateFitness();
-        carpool.nextGeneration()
+    for( let i = 0; i < speed; i++){
+        carpool.thinkAndMove( 2 );
+        
+        if( !carpool.running ){
+            carpool.calculateFitness();
+            carpool.nextGeneration()
+        }
+        debugText.text(`Time : ${(time/1000).toFixed(3)}\nGeneration : ${carpool.generation}\nAlive : ${carpool.running}\nBest : ${carpool.best?.score}`);
     }
-
-    
-    debugText.text(`Time : ${(time/1000).toFixed(3)}\nGeneration : ${carpool.generation}\nAlive : ${carpool.running}\nBest : ${carpool.best?.score}`);
 }
 
 setup();

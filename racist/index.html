@@ -15,10 +15,24 @@
     <div class="control-panel">
         
         <div class="option">
-            <span class="button edit" id="mode">
-                <img src="images/pack/play.png" class="play-icon" alt="">
-                <img src="images/pack/stop.png" class="edit-icon" alt="">
+            <span class="input button unchecked" id="mode">
+                <img src="images/pack/play.png" class="unchecked-icon" alt="">
+                <img src="images/pack/stop.png" class="checked-icon" alt="">
                 <p id="text-content">Run</p>
+            </span>
+            
+        </div>
+
+        <div class="option">
+            <span class="input button" id="debug">
+                Show gizmos
+            </span>
+        </div>
+
+        <div class="option">
+            <span class="input">
+                Speed : 
+                <input type="range" name="speed" id="speed" value="1" min="1", max="100">
             </span>
         </div>
         
