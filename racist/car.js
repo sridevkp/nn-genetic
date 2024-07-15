@@ -1,15 +1,18 @@
 import NN from "./nn.js"
+import Vec2 from "./utils.js";
 
 export default class Car extends Konva.Group{
     rays = [];
     indicators = []
 
-    constructor( x, y, w=25, h=65, rays=8, fov=Math.PI/2 ){
-        super({x, y, draggable:true})
+    constructor( x, y, rotation, w=25, h=65, rays=8, fov=Math.PI/2 ){
+        super({x, y, draggable:true, rotation })
         this.brain = new NN( 8, 16, 3 );
         this.crashed = false ;
         this.rayLength = 140
         this.score = 0 ;
+        this.direction = rotation;//degrees
+
         this.constructRays( rays, fov );
         this.constructBody( w, h )
     }
@@ -41,28 +44,28 @@ export default class Car extends Konva.Group{
         }
     }
 
-    castRays( points ){
+    castRays( leftAndRightPoints ){
         const X = [];
         this.rays.forEach( ray => {
-            const x = this.x(),
-                  y = this.y();
 
             const [a,b,px,py] = ray.points();
 
-            const p1 = { x , y };
-            const p2 = { x : x+px, y : y+py };
+            const p1 = new Vec2( this.x(), this.y() );
+            const p2 = Vec2.add(new Vec2( px, py ).rotated( this.direction ), p1 );
 
             let minDist = this.rayLength ;
             ray.indicator.hide()
-            for( let i = 0; i < points.length; i+= 2){
-                const q1 = { x: points[i  ], y:points[i+1]} ;
-                const q2 = { x: points[i+2], y:points[i+3]} ;
 
-                const intersect = lineLineIntersection( p1, p2, q1, q2 );
+            for( let points of leftAndRightPoints )
+            for( let i = 0; i < points.length-2; i+= 2){
+                const q1 = new Vec2( points[i  ], points[i+1] ) ;
+                const q2 = new Vec2( points[i+2], points[i+3] ) ;
+
+                const intersect = lineLineIntersection( p1, p2, q2, q1 );
                 if( intersect ){
                     ray.indicator.show()
-                    const dx = intersect.x - x,
-                          dy = intersect.y - y;
+                    const dx = intersect.x - p1.x,
+                          dy = intersect.y - p2.y;
                     const dist = Math.sqrt( dx*dx + dy*dy );
                     
                     if( dist < minDist ){
@@ -70,7 +73,7 @@ export default class Car extends Konva.Group{
                         ray.indicator.absolutePosition( intersect );
                     }
                 }
-            }
+            };
             X.push( minDist / this.rayLength );
         })
 
@@ -81,20 +84,19 @@ export default class Car extends Konva.Group{
         const X = this.castRays( points );
 
         const [result, decision] = this.brain.predict(X)
-        console.log(decision)
-        return;
-        switch( decision ){
-            case 0: break;
-            case 1:
-                this.direction += Math.PI/9;
-                break;
-            case 2:
-                this.direction += Math.PI/9;
-                break;
-        }
 
-        this.x( speed * Math.cos(this.direction));
-        this.y( speed * Math.sin(this.direction));
+        // switch( decision ){
+        //     case 0: break;
+        //     case 1:
+        //         this.direction += Math.PI/9;
+        //         break;
+        //     case 2:
+        //         this.direction += Math.PI/9;
+        //         break;
+        // }
+        // this.rotation( this.direction );
+        // const angle = this.direction / 180 * Math.PI;
+        // this.move({ x :speed * Math.cos(angle), y :speed * Math.sin(angle)});
     }
 
     static sex( carA, carB ){
@@ -122,7 +124,7 @@ function lineLineIntersection(p1, p2, q1, q2) {
     if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
       const x = p1.x + (t * s1_x);
       const y = p1.y + (t * s1_y);
-      return { x, y };
+      return new Vec2( x, y );
     }
   
     return null; 

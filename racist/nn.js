@@ -83,9 +83,13 @@ export default class NN {
         this.updateParams(dW1, dB1, dW2, dB2);
     }
 
-    predict(ip) {
-        const [Z1, A1, Z2, result] = this.fdProp(ip);
-        return [result, math.argmax(result)];
+    predict(X) {
+        const [Z1, A1, Z2, result] = this.fdProp( math.reshape(X, [this.ip,1]) );
+        
+        const max = math.max( result, 0 );
+        const argmax = result.findIndex( element => Array.isArray(element) && element.length === max.length && element.every((value, i) => value === max[i]) ) ;
+
+        return [result, argmax ];
     }
     static crossover(nn1, nn2) {
         const child = new NN(nn1.ip, nn1.hidden, nn1.op, nn1.learning_rate);
@@ -109,12 +113,12 @@ export default class NN {
 }
 
 function softmax(x) {
-    const expX = math.exp(x);
+    const expX = math.map( x, val => math.exp(val));
     return math.divide(expX, math.sum(expX));
 }
 
 function ReLU(x) {
-    return math.max(0, x);
+    return math.map(x, val => Math.max( val, 0 ));
 }
 
 function derivReLU(x) {

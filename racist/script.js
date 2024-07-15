@@ -15,10 +15,8 @@ document.getElementById("mode").addEventListener('click', function() {
     this.classList.add(mode);
     document.getElementById("text-content").textContent = mode =='edit'? 'Run' : 'Edit'
 
+    track.setMode( mode );
     if( mode == "run" ){
-        track.deconstructLine()
-        track.constructRoad()
-
         if( track.ready() ){
             carpool = new CarPool( 1, track, ...track.getStartingState());
             layer.add(carpool)
@@ -26,8 +24,6 @@ document.getElementById("mode").addEventListener('click', function() {
             draw()
         }
     }else{
-        track.deconstructRoad()
-        track.constructLine()
         carpool.destroy() ;
     }
 
@@ -80,7 +76,7 @@ function draw( curr ){
     // if( timeElapsed<fpsInterval) return;
     time = curr ;
 
-    carpool.thinkAndMove();
+    carpool.thinkAndMove( 5 );
     
     if( !carpool.running ){
         carpool.calculateFitness();

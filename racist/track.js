@@ -1,4 +1,5 @@
 import Node from "./node.js";
+import Vec2 from "./utils.js";
 
 export default class Track extends Konva.Group{
     nodes = [];
@@ -7,10 +8,17 @@ export default class Track extends Konva.Group{
     constructor( trackWidth ){
         super({})
         this.trackWidth = trackWidth ;
+        this.mode = "edit";
 
-        this.rightLine = new Konva.Line({ strokeWidth:2, stroke:"gray"});
-        this.leftLine = new Konva.Line({ strokeWidth:2, stroke:"gray"});
+        this.rightLine = new Konva.Line({ strokeWidth:1, stroke:"black"});
+        this.leftLine = new Konva.Line({ strokeWidth:1, stroke:"black"});
+        
+        this.trackLine = new Konva.Line({ 
+            strokeWidth: trackWidth*1.7, 
+            stroke:"#445060",
+        })
 
+        this.add( this.trackLine);
         this.add( this.rightLine );
         this.add( this.leftLine );
     }
@@ -55,7 +63,7 @@ export default class Track extends Konva.Group{
         const dx = a.x()-b.x();
         const dy = a.y()-b.y();
         const len = Math.sqrt( dx*dx + dy*dy );
-        return { x : -dy/len, y : dx/len }
+        return new Vec2( -dy/len, dx/len )
     }
 
     constructLine(){
@@ -80,7 +88,7 @@ export default class Track extends Konva.Group{
                 line.strokeWidth(3);
             })
             line.on('click', e => {
-                if( e.evt.button == 0) this.addNodeAtIndex( i+1, new Node( e.evt.layerX, e.evt.layerY ) );
+                if( e.evt.button == 0 &&this.mode == "edit") this.addNodeAtIndex( i+1, new Node( e.evt.layerX, e.evt.layerY ) );
             })
 
             const updateLine = e => line.points(this.getConnectorPoints( a, b, 20 ));
@@ -97,19 +105,20 @@ export default class Track extends Konva.Group{
 
     deconstructLine(){
         this.nodes.forEach( node => node.remove() );
-        this.lines.forEach( line => line.remove() );
+        this.lines.forEach( line => line.opacity(.7) );
     }
 
     constructRoad(){
         const rightPoints = [];
         const leftPoints  = [];
+        const trackPoints = [];
 
         for( let i = 1; i < this.nodes.length+2; i++ ){
             const a = this.nodes[ (i-1) % this.nodes.length ];
             const b = this.nodes[ (i+1) % this.nodes.length ];
             const p = this.nodes[  i    % this.nodes.length ];
 
-            const normal = this.getNormal( a, b );
+            const normal = Vec2.sub( Vec2.fromNode(a), Vec2.fromNode(b) ).normal();
 
             const prx = p.x() + normal.x*this.trackWidth;
             const pry = p.y() + normal.y*this.trackWidth;
@@ -118,22 +127,40 @@ export default class Track extends Konva.Group{
 
             rightPoints.push(prx, pry );
             leftPoints.push( plx, ply );
+
+            if(i==1) trackPoints.push( a.x(), a.y())
+            trackPoints.push( p.x(), p.y() );
         }
         this.rightLine.points( rightPoints );
         this.leftLine.points( leftPoints );
+        this.trackLine.points( trackPoints );
     }
 
     deconstructRoad(){
         this.rightLine.points([]);
         this.leftLine.points([]);
+        this.trackLine.points([]);
     }
-
+    setMode( mode ){
+        switch( mode ){
+            case "edit":
+                this.mode = mode;
+                this.deconstructRoad();
+                this.constructLine();
+                break;
+            case "run":
+                this.mode = mode;
+                this.deconstructLine()
+                this.constructRoad();
+                break;
+        }
+    }
     getStartingState(){
         const start = this.nodes[0] ;
         const dx = this.nodes[1].x() - start.x() ;
         const dy = this.nodes[1].y() - start.y() ;
 
-        const angle = Math.atan2(-dy, dx);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
         
         return [ start.x(), start.y(), angle ] ;
     }

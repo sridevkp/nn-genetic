@@ -13,7 +13,7 @@ export default class CarPool extends Konva.Group{
         this.track = track
 
         for( let i = 0; i < n; i++){
-            const car = new Car( x, y );
+            const car = new Car( x, y, direction );
             this.cars.push( car );
             this.add( car )
         }
@@ -25,7 +25,7 @@ export default class CarPool extends Konva.Group{
         this.running = 0 ;
         this.cars.forEach( car => {
             if( car.crashed ) return;
-            car.thinkAndMove( speed, [...this.track.rightLine.points(), ...this.track.leftLine.points()] );
+            car.thinkAndMove( speed, [this.track.rightLine.points(), this.track.leftLine.points()] );
             this.running ++
         })
     }
