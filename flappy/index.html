@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+		*{
+			box-sizing: border-box;
+		}
+		body{
+			margin : 0;
+			padding : 0;
+			color: rgb(23, 23, 23);
+			overflow: hidden;
+			font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+		}
+		#canvas{
+			background : rgb(230,230,230);
+		}
+		.floating{
+			/* width: 70vw; */
+			padding: 1.5rem 2rem;
+			background-color: white;
+			border-radius: 60px;
+			position: fixed;
+			bottom: 40px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-weight: bolder;
+			display: flex;
+			gap: 1rem;
+			justify-content: center;
+			border: 2px solid transparent;
+			box-shadow: 0 0 15px rgba(0, 0, 0, 0.4) ;
+			
+			&:hover{
+				border: 2px solid rgb(49, 182, 243);
+			}
+
+		}
+		.option{
+			display: flex;
+			align-items: center;
+		}
+
+		</style>
+		<title>canvas</title>
+	</head>
+
+	<body>
+
+		<canvas id="canvas"></canvas>
+		
+		<div class="floating">
+			<div class="option">
+				<label for="speed">Speed : </label>
+				<input type="range" min=1 max= 100 id="speed" value=1>
+			</div>
+		</div>
+
+		<script src="script.js" type="module" defer></script>
+
+	</body>
+
+</html>
