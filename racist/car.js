@@ -21,6 +21,14 @@ export default class Car extends Konva.Group{
         this.on('click', () => this.debug( !this.debugging ))
     }
 
+    reset( x, y, rotation ){
+        this.score = 0;
+        this.crashed = false ;
+        this.x(x);
+        this.y(y);
+        this.rotation(rotation);
+    }
+
     constructBody( height, width ){
         const halfWidth  = width  /2;
         const halfHeight = height /2
@@ -128,24 +136,19 @@ export default class Car extends Konva.Group{
         return X;
     }
 
-    thinkAndMove( speed, points ){
-        const X = this.castRays( points );
-
-        const [result, decision] = this.brain.predict(X)
-        
-        switch( decision ){
-            case 0: break;
-            case 1:
-                this.direction += 4;
-                break;
-            case 2:
-                this.direction += 4;
-                break;
+    thinkAndMove(speed, points){
+        const X = this.castRays(points);
+        const [result, decision] = this.brain.predict(X);
+    
+        switch (decision) {
+            case 0: break;  // No turn
+            case 1: this.direction -= 4; break;  // Turn left
+            case 2: this.direction += 4; break;  // Turn right
         }
-        this.rotation( this.direction );
+        this.rotation(this.direction);
         const angle = this.direction / 180 * Math.PI;
-        this.score ++
-        this.move({ x :speed * Math.cos(angle), y :speed * Math.sin(angle)});
+        this.score++;
+        this.move({ x: speed * Math.cos(angle), y: speed * Math.sin(angle) });
     }
 
     mutate( t ){
@@ -154,7 +157,7 @@ export default class Car extends Konva.Group{
 
     static crossover( carA, carB ){
         if( !carA || !carB ) return console.log("orphan");
-        const child = new Car( carA.x(), carB.y(), carA.direction ); 
+        const child = new Car( carA.x(), carA.y(), carA.direction ); 
         child.brain = NN.crossover( carA.brain, carB.brain )
         return child ;
     }

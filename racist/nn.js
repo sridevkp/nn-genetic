@@ -93,29 +93,34 @@ export default class NN {
     }
 
     mutate( t ){
-        this.W = this.W.map( w => math.map( w, val => Math.random() < t ? val += (Math.random()-.5)*.2 : val ))
-        this.B = this.B.map( b => math.map( b, val => Math.random() < t ? val += (Math.random()-.5)*.2 : val ))
+        this.W = this.W.map( w => math.map( w, val => Math.random() < t ? val += (Math.random()-.5)*.1 : val ))
+        this.B = this.B.map( b => math.map( b, val => Math.random() < t ? val += (Math.random()-.5)*.1 : val ))
     }
 
     static crossover(nn1, nn2) {
         const child = new NN(nn1.ip, nn1.hidden, nn1.op, nn1.learning_rate);
-
+    
         for (let i = 0; i < child.W.length; i++) {
             const W1 = nn1.W[i];
             const W2 = nn2.W[i];
-            const W_child = math.map( W1, (val, i) => (Math.random() < .5? W1[i[0]][i[1]] : W2[i[0]][i[1]] ) );
+            const W_child = W1.map((row, rowIndex) => 
+                row.map((val, colIndex) => Math.random() < 0.5 ? W1[rowIndex][colIndex] : W2[rowIndex][colIndex])
+            );
             child.W[i] = W_child;
         }
-
+    
         for (let i = 0; i < child.B.length; i++) {
             const B1 = nn1.B[i];
             const B2 = nn2.B[i];
-            const B_child = math.map( B1, (val, i) => (Math.random() < .5? B1[i[0]][i[1]] : B2[i[0]][i[1]] ) );
-            child.B[i] = B_child
+            const B_child = B1.map((row, rowIndex) => 
+                row.map((val, colIndex) => Math.random() < 0.5 ? B1[rowIndex][colIndex] : B2[rowIndex][colIndex])
+            );
+            child.B[i] = B_child;
         }
-
+    
         return child;
     }
+    
 }
 
 function softmax(x) {

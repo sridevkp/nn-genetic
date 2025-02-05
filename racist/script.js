@@ -1,5 +1,5 @@
 import CarPool from "./carpool.js";
-import Node from "./node.js";
+import Node from "./nodeobject.js";
 import Track from "./track.js";
 
 var stage;
@@ -16,7 +16,7 @@ document.getElementById("speed").oninput = function(){ speed = this.value }
 document.getElementById("debug").addEventListener( 'click', function(){
     debug = ! debug ;
     this.textContent = debug ? "Hide gizmos" : "Show gizmos";
-    // carpool && carpool.debug( debug );
+    carpool && carpool.debug( debug );
 })
 
 document.getElementById("mode").addEventListener('click', function() {
@@ -89,8 +89,9 @@ function draw( curr ){
         if( !carpool.running ){
             carpool.calculateFitness();
             carpool.nextGeneration()
+            carpool.debug( debug )
         }
-        debugText.text(`Time : ${(time/1000).toFixed(3)}\nGeneration : ${carpool.generation}\nAlive : ${carpool.running}\nBest : ${carpool.best?.score}`);
+        debugText.text(`Time : ${(time/1000).toFixed(3)}\nGeneration : ${carpool.generation}\nAlive : ${carpool.running}\nBest : ${carpool.bestScore}`);
     }
 }
 

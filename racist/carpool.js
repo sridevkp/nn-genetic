@@ -10,34 +10,40 @@ export default class CarPool extends Konva.Group{
         this.start = new Vec2( x, y );
         this.direction = direction;
         this.best ;
-        this.track = track
+        this.bestScore;
+        this.track = track;
+
 
         for( let i = 0; i < n; i++){
             const car = new Car( x, y, direction );
             this.cars.push( car );
             this.add( car )
-            // car.debug( true );
         }
         this.generation = 0 ;
         this.running = n ;
     }
 
+    debug( debug ){
+        this.cars.forEach( car => car.debug(debug) )
+    }
+
     thinkAndMove( speed ){
         this.running = 0 ;
         this.cars.forEach( car => {
-            if( car.crashed ) return;
+            if( car.crashed ) return car.hide() ;
             car.thinkAndMove( speed, [this.track.rightLine.points(), this.track.leftLine.points()] );
             this.running ++
         })
     }
 
     calculateFitness(){
-        let sum = 0 ;
-        this.cars.forEach( car => {
-            sum += car.score
-            if( !this.best || car.score > this.best.score ) this.best = car ;
-        } );
-        this.cars.forEach( car => car.fitness = car.score / sum );
+        let sum = 0;
+        this.cars.forEach(car => {
+            sum += car.score;
+            if (!this.best || car.score > this.best.score) this.best = car;
+        });
+        this.cars.forEach(car => car.fitness = car.score / sum);
+        this.bestScore = this.best.score;
     }
 
     pickOne() {
@@ -53,21 +59,27 @@ export default class CarPool extends Konva.Group{
 
     nextGeneration(){
         const newGeneration = []
-        const wildCardCount = this.cars.length / 5 ;
+        const wildCardCount = this.cars.length / 10 ;
         for( let i = 0; i < this.cars.length-wildCardCount; i++ ){
             const child = Car.crossover( this.pickOne(), this.pickOne() );
-            child.mutate( 0.02 )
-            child.x( this.start.x );
-            child.y( this.start.y );
+            // i > 10 && child.visible(false)
+            child.mutate( 0.01 );
+            child.reset( this.start.x, this.start.y, this.direction );
             newGeneration.push(child);
             this.add( child );
         }
-        for( let i = 0; i < wildCardCount; i++ ){
+        for( let i = 0; i < wildCardCount-1; i++ ){
             const wCar = new Car( this.start.x, this.start.y, this.direction );
+            // wCar.visible(false)
             newGeneration.push(wCar);
             this.add( wCar );
         }
-        this.cars.forEach( car => car.destroy() );
+
+        newGeneration.push( this.best )
+        this.best.reset( this.start.x, this.start.y, this.direction  )
+        this.best.mutate( 0.01 );
+
+        this.cars.forEach( car => car != this.best && car.destroy() );
         this.cars = newGeneration ;
         this.running = newGeneration.length
         this.generation++;

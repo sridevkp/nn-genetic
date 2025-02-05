@@ -1,4 +1,4 @@
-import Node from "./node.js";
+import Node from "./nodeobject.js";
 import Vec2 from "./utils.js";
 
 export default class Track extends Konva.Group{
