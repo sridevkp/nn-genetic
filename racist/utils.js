@@ -17,6 +17,9 @@ export default class Vec2{
         const len = this.length();
         return new Vec2( -this.y/len, this.x/len );
     }
+    static distance(v1, v2){
+        return Math.sqrt((v1.x - v2.x) ** 2 + (v1.y - v2.y) ** 2);
+    }
     static fromNode( node ){
         return new Vec2( node.x(), node.y() );
     }

@@ -1,19 +1,23 @@
 import NN from "./nn.js"
 import Vec2 from "./utils.js";
 
+const checkInterval = 50;
+const turnSpeed = 6;
+
 export default class Car extends Konva.Group{
     rays = [];
-    indicators = []
+    indicators = [];
 
     constructor( x, y, rotation, w=16, h=36, rays=8, fov=Math.PI/2 ){
         super({x, y, draggable:true, rotation })
         this.brain = new NN( 8, 16, 3 );
         this.crashed = false ;
-        this.rayLength = 140
+        this.rayLength = 80
         this.score = 0 ;
         this.fitness = 0;
-        this.direction = rotation;//degrees
+        this.direction = rotation;
         this.debugging = false;
+        this.checkPoints = [];
 
         this.constructRays( rays, fov );
         this.constructBody( w, h )
@@ -27,6 +31,8 @@ export default class Car extends Konva.Group{
         this.x(x);
         this.y(y);
         this.rotation(rotation);
+        this.direction = rotation;
+        this.checkPoints = [];
     }
 
     constructBody( height, width ){
@@ -67,7 +73,6 @@ export default class Car extends Konva.Group{
                 stroke : "black"
             });
             this.rays.push(ray);
-            // this.add( ray );
 
             const indicator = new Konva.Circle({
                 x : 0, y : 0,
@@ -136,18 +141,37 @@ export default class Car extends Konva.Group{
         return X;
     }
 
-    thinkAndMove(speed, points){
+    isStuck(){
+        if( this.checkPoints.length == 0) return false;
+        const lastCheckpoint = this.checkPoints[this.checkPoints.length - 1];
+        const currentPosition = new Vec2(this.x(), this.y());
+        const distance = Vec2.distance(lastCheckpoint, currentPosition);
+        return distance < 30;
+    }
+
+    updateCheckpoint(){
+        if (this.isStuck()) {
+            this.crashed = true;
+            return;
+        }
+        const currentPosition = new Vec2(this.x(), this.y());
+        this.checkPoints.push(currentPosition);
+    }
+
+    thinkAndMove(speed, points, time){
+        if( time % checkInterval == 0 ) this.updateCheckpoint();
+
         const X = this.castRays(points);
         const [result, decision] = this.brain.predict(X);
     
         switch (decision) {
-            case 0: break;  // No turn
-            case 1: this.direction -= 4; break;  // Turn left
-            case 2: this.direction += 4; break;  // Turn right
+            case 0: this.direction -= turnSpeed; break;  // Turn left
+            case 1: break;  // No turn
+            case 2: this.direction += turnSpeed; break;  // Turn right
         }
         this.rotation(this.direction);
         const angle = this.direction / 180 * Math.PI;
-        this.score++;
+        this.score+=time;
         this.move({ x: speed * Math.cos(angle), y: speed * Math.sin(angle) });
     }
 

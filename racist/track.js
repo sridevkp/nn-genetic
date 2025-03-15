@@ -168,7 +168,56 @@ export default class Track extends Konva.Group{
         
         return [ start.x(), start.y(), angle ] ;
     }
-    
+
+    saveTrack(name = 'default_track') {
+        const trackData = {
+            width: this.trackWidth,
+            nodes: this.nodes.map(node => ({
+                x: node.x(),
+                y: node.y()
+            }))
+        };
+        localStorage.setItem(`track_${name}`, JSON.stringify(trackData));
+    }
+
+    loadTrack(name = 'default_track') {
+        const trackData = localStorage.getItem(`track_${name}`);
+        if (!trackData) {
+            console.warn(`No track found with name: ${name}`);
+            return false;
+        }
+
+        try {
+            const { width, nodes } = JSON.parse(trackData);
+            
+            this.nodes.forEach(node => node.remove());
+            this.nodes = [];
+            
+            this.trackWidth = width;
+            
+            nodes.forEach(nodeData => {
+                const node = new Node(nodeData.x, nodeData.y);
+                this.addNode(node);
+            });
+            
+            if (this.mode === 'edit') {
+                this.constructLine();
+            } else {
+                this.constructRoad();
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error loading track:', error);
+            return false;
+        }
+    }
+
+    static getSavedTracks() {
+        return Object.keys(localStorage)
+            .filter(key => key.startsWith('track_'))
+            .map(key => key.replace('track_', ''));
+    }
 }
 
 Array.prototype.insert = function ( index, ...items ) {

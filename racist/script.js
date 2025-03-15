@@ -27,6 +27,7 @@ document.getElementById("mode").addEventListener('click', function() {
 
     track.setMode( mode );
     if( mode == "run" ){
+        track.saveTrack();
         if( track.ready() ){
             carpool = new CarPool( 100, track, ...track.getStartingState());
             layer.add(carpool)
@@ -57,13 +58,15 @@ function setup(){
 
     track = new Track( 35 );
 
-    for( let angle = 0; angle < Math.PI*2; angle+= Math.PI/10 ){
-        const radius = 250 + Math.random() * 90;
-        const x = radius * Math.cos(angle);
-        const y = radius * Math.sin(angle);
-        track.addNode( new Node( stage.width()/2 + x,   stage.height()/2 + y ));
+    if( !track.loadTrack() ){
+        for( let angle = 0; angle < Math.PI*2; angle+= Math.PI/10 ){
+            const radius = 250 + Math.random() * 90;
+            const x = radius * Math.cos(angle);
+            const y = radius * Math.sin(angle);
+            track.addNode( new Node( stage.width()/2 + x,   stage.height()/2 + y ));
+        }
+        track.constructLine();
     }
-    track.constructLine();
     layer.add( track )
 
     debugText = new Konva.Text({
@@ -77,6 +80,7 @@ function setup(){
 // const fps = 60;
 // const fpsInterval = 1000/fps;
 var time = 0 ;
+var genTime = 0;
 function draw( curr ){
     if( mode == "run") requestAnimationFrame( draw );
     if( !carpool || !carpool.running ) return ;
@@ -84,9 +88,10 @@ function draw( curr ){
     // if( timeElapsed<fpsInterval) return;
     time = curr ;
     for( let i = 0; i < speed; i++){
-        carpool.thinkAndMove( 2 );
-        
+        carpool.thinkAndMove( 2, genTime );
+        genTime++;
         if( !carpool.running ){
+            genTime = 0;
             carpool.calculateFitness();
             carpool.nextGeneration()
             carpool.debug( debug )
@@ -95,5 +100,4 @@ function draw( curr ){
     }
 }
 
-setup();
-draw();
+setup();draw();
