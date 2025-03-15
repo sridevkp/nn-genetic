@@ -10,6 +10,5 @@ https://github.com/user-attachments/assets/2313e38c-a3a9-4ecf-9430-f575fd36b381
 
 # Racist
 ![Racist-02-05-2025_03_57_PM](https://github.com/user-attachments/assets/67f41778-9ffe-4a31-a8e5-a98c3a5e08c3)
-https://github.com/user-attachments/assets/9032db4c-277d-4fd9-a738-8fb742ce5c72
-https://github.com/user-attachments/assets/86417b26-c0c2-4dc0-b863-572d95d0f00f
+[!demo]https://github.com/user-attachments/assets/9032db4c-277d-4fd9-a738-8fb742ce5c72
 
