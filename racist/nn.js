@@ -65,10 +65,10 @@ export default class NN {
     bdProp(X, Z1, A1, Z2, A2, Y, m) {
         const dZ2 = math.subtract(A2, Y);
         const dW2 = math.divide(math.multiply(dZ2, math.transpose(A1)), m);
-        const dB2 = math.reshape(math.divide(math.sum(Z2), m), [-1, 1]);
+        const dB2 = math.reshape(math.divide(math.sum(dZ2, 1), m), [this.op, 1]);
         const dZ1 = math.dotMultiply(math.multiply(math.transpose(this.W[1]), dZ2), derivReLU(Z1));
         const dW1 = math.divide(math.multiply(dZ1, math.transpose(X)), m);
-        const dB1 = math.reshape(math.divide(math.sum(dZ1), m), [-1, 1]);
+        const dB1 = math.reshape(math.divide(math.sum(dZ1, 1), m), [this.hidden, 1]);
         return [dW1, dB1, dW2, dB2];
     }
 
@@ -77,19 +77,25 @@ export default class NN {
         return math.sum(math.equal(result, Y)) / Y.size;
     }
 
-    train(X, Y, m = 1000) {
+    train(X, Y, m = null) {
+        if (m == null) {
+            const shape = math.size(X).valueOf();
+            m = shape[1] || 1;
+        }
         const [Z1, A1, Z2, A2] = this.fdProp(X);
         const [dW1, dB1, dW2, dB2] = this.bdProp(X, Z1, A1, Z2, A2, Y, m);
         this.updateParams(dW1, dB1, dW2, dB2);
     }
 
     predict(X) {
-        const [Z1, A1, Z2, result] = this.fdProp( math.reshape(X, [this.ip,1]) );
-        
-        const max = math.max( result, 0 );
-        const argmax = result.findIndex( element => Array.isArray(element) && element.length === max.length && element.every((value, i) => value === max[i]) ) ;
-
-        return [result, argmax ];
+        const input = math.reshape(math.matrix(X), [this.ip, 1]);
+        const [, , , result] = this.fdProp(input);
+        const flat = math.flatten(result).valueOf();
+        let argmax = 0;
+        for (let i = 1; i < flat.length; i++) {
+            if (flat[i] > flat[argmax]) argmax = i;
+        }
+        return [flat, argmax];
     }
 
     mutate( t ){
@@ -99,32 +105,31 @@ export default class NN {
 
     static crossover(nn1, nn2) {
         const child = new NN(nn1.ip, nn1.hidden, nn1.op, nn1.learning_rate);
-    
+
         for (let i = 0; i < child.W.length; i++) {
-            const W1 = nn1.W[i];
-            const W2 = nn2.W[i];
-            const W_child = W1.map((row, rowIndex) => 
-                row.map((val, colIndex) => Math.random() < 0.5 ? W1[rowIndex][colIndex] : W2[rowIndex][colIndex])
+            const W1 = math.matrix(nn1.W[i]);
+            const W2 = math.matrix(nn2.W[i]);
+            child.W[i] = math.map(W1, (value, index) =>
+                Math.random() < 0.5 ? value : W2.get(index)
             );
-            child.W[i] = W_child;
         }
-    
+
         for (let i = 0; i < child.B.length; i++) {
-            const B1 = nn1.B[i];
-            const B2 = nn2.B[i];
-            const B_child = B1.map((row, rowIndex) => 
-                row.map((val, colIndex) => Math.random() < 0.5 ? B1[rowIndex][colIndex] : B2[rowIndex][colIndex])
+            const B1 = math.matrix(nn1.B[i]);
+            const B2 = math.matrix(nn2.B[i]);
+            child.B[i] = math.map(B1, (value, index) =>
+                Math.random() < 0.5 ? value : B2.get(index)
             );
-            child.B[i] = B_child;
         }
-    
+
         return child;
     }
     
 }
 
 function softmax(x) {
-    const expX = math.map( x, val => math.exp(val));
+    const maxVal = math.max(x);
+    const expX = math.map(x, val => math.exp(val - maxVal));
     return math.divide(expX, math.sum(expX));
 }
 

@@ -47,22 +47,27 @@ export default class CarPool extends Konva.Group{
             sum += car.score;
             if (!this.best || car.score > this.best.score) this.best = car;
         });
-        this.cars.forEach(car => car.fitness = car.score / sum);
+        if (sum === 0) {
+            const uniformFitness = 1 / this.cars.length;
+            this.cars.forEach(car => car.fitness = uniformFitness);
+        } else {
+            this.cars.forEach(car => car.fitness = car.score / sum);
+        }
         this.bestScore = this.best.score;
     }
 
     pickOne() {
         let r = Math.random();
         let index = 0;
-        while (r > 0) {
+                while (r > 0 && index < this.cars.length) {
           r -= this.cars[index].fitness;
           index++;
         }
-        index--;
+                index = Math.max(0, index - 1);
         return this.cars[index];
     }
 
-    nextGeneration(){
+    nextGeneration(mutationRate = 0.05) {
         this.cars.sort((a, b) => b.score - a.score);
         
         const newGeneration = [];
@@ -73,14 +78,14 @@ export default class CarPool extends Konva.Group{
         for(let i = 0; i < eliteCount; i++) {
             const eliteCar = this.cars[i];
             eliteCar.reset(this.start.x, this.start.y, this.direction);
-            eliteCar.mutate(0.005); 
+            eliteCar.mutate(mutationRate); 
             newGeneration.push(eliteCar);
         }
         
         // Sex
         for(let i = 0; i < this.cars.length - eliteCount - wildCardCount; i++) {
             const child = Car.crossover(this.pickOne(), this.pickOne());
-            child.mutate(0.01);
+            child.mutate(mutationRate);
             child.reset(this.start.x, this.start.y, this.direction);
             newGeneration.push(child);
             this.add(child);
@@ -89,6 +94,7 @@ export default class CarPool extends Konva.Group{
         // Wildcard 
         for(let i = 0; i < wildCardCount; i++) {
             const wCar = new Car(this.start.x, this.start.y, this.direction);
+            wCar.mutate(mutationRate);
             newGeneration.push(wCar);
             this.add(wCar);
         }

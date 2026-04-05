@@ -115,7 +115,7 @@ export default class Car extends Konva.Group{
                 if( intersect ){
                     ray.indicator.show()
                     const dx = intersect.x - p1.x,
-                          dy = intersect.y - p2.y;
+                          dy = intersect.y - p1.y;
                     const dist = Math.sqrt( dx*dx + dy*dy );
                     
                     if( dist < minDist ){
@@ -125,7 +125,7 @@ export default class Car extends Konva.Group{
                 }
                 if( this.crashed ) continue ;
                 const bb = this.boundingBox.points();
-                for( let i = 0; i < bb.length; i+=2 ){
+                for( let i = 0; i < bb.length - 2; i+=2 ){
                     const b1 = Vec2.add(new Vec2( bb[i  ], bb[i+1] ).rotated(this.direction), p1 );
                     const b2 = Vec2.add(new Vec2( bb[i+2], bb[i+3] ).rotated(this.direction), p1 );
                     // console.log( b1, b2 )
@@ -171,7 +171,7 @@ export default class Car extends Konva.Group{
         }
         this.rotation(this.direction);
         const angle = this.direction / 180 * Math.PI;
-        this.score+=time;
+        this.score += 1;
         this.move({ x: speed * Math.cos(angle), y: speed * Math.sin(angle) });
     }
 

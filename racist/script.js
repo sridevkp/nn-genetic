@@ -29,7 +29,7 @@ document.getElementById("mode").addEventListener('click', function() {
     if( mode == "run" ){
         track.saveTrack();
         if( track.ready() ){
-            carpool = new CarPool( 100, track, ...track.getStartingState());
+            carpool = new CarPool( 10, track, ...track.getStartingState());
             layer.add(carpool)
             layer.draw()
             draw()
